@@ -1,0 +1,78 @@
+From c8442b711785c5d354b0c7721d752d2126c8950d Mon Sep 17 00:00:00 2001
+From: Dylan Schoenmakers <dylan@opifer.nl>
+Date: Tue, 17 Jun 2014 10:39:34 +0200
+Subject: [PATCH] Added aggregations methods to paginator
+
+---
+ Paginator/FantaPaginatorAdapter.php     | 12 ++++++++++++
+ Paginator/PaginatorAdapterInterface.php |  7 +++++++
+ Paginator/RawPaginatorAdapter.php       | 14 ++++++++++++++
+ 3 files changed, 33 insertions(+)
+
+diff --git a/Paginator/FantaPaginatorAdapter.php b/Paginator/FantaPaginatorAdapter.php
+index 2ad6983..26214be 100644
+--- a/Paginator/FantaPaginatorAdapter.php
++++ b/Paginator/FantaPaginatorAdapter.php
+@@ -39,6 +39,18 @@ class FantaPaginatorAdapter implements AdapterInterface
+     {
+         return $this->adapter->getFacets();
+     }
++    
++    /**
++     * Returns Buckets
++     *
++     * @return mixed
++     *
++     * @api
++     */
++    public function getAggregations()
++    {
++        return $this->adapter->getAggregations();
++    }
+ 
+     /**
+      * Returns a slice of the results.
+diff --git a/Paginator/PaginatorAdapterInterface.php b/Paginator/PaginatorAdapterInterface.php
+index 25786a0..d5e9277 100644
+--- a/Paginator/PaginatorAdapterInterface.php
++++ b/Paginator/PaginatorAdapterInterface.php
+@@ -31,4 +31,11 @@ interface PaginatorAdapterInterface
+      * @return mixed
+      */
+     function getFacets();
++
++    /**
++     * Returns Buckets
++     *
++     * @return mixed
++     */
++    function getAggregations();
+ }
+diff --git a/Paginator/RawPaginatorAdapter.php b/Paginator/RawPaginatorAdapter.php
+index 9136bc0..c2c356d 100644
+--- a/Paginator/RawPaginatorAdapter.php
++++ b/Paginator/RawPaginatorAdapter.php
+@@ -128,6 +128,20 @@ class RawPaginatorAdapter implements PaginatorAdapterInterface
+     }
+ 
+     /**
++     * Returns Buckets
++     *
++     * @return mixed
++     */
++    public function getAggregations()
++    {
++        if ( ! isset($this->aggregations)) {
++            $this->aggregations = $this->searchable->search($this->query)->getAggregations();
++        }
++
++        return $this->aggregations;
++    }
++
++    /**
+      * Returns the Query
+      *
+      * @return Query the search query
+-- 
+1.8.4.2
+
