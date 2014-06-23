@@ -128,20 +128,6 @@ class RawPaginatorAdapter implements PaginatorAdapterInterface
     }
 
     /**
-     * Returns Buckets
-     *
-     * @return mixed
-     */
-    public function getAggregations()
-    {
-        if ( ! isset($this->aggregations)) {
-            $this->aggregations = $this->searchable->search($this->query)->getAggregations();
-        }
-
-        return $this->aggregations;
-    }
-
-    /**
      * Returns the Query
      *
      * @return Query the search query

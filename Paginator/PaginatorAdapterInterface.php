@@ -31,11 +31,4 @@ interface PaginatorAdapterInterface
      * @return mixed
      */
     function getFacets();
-
-    /**
-     * Returns Buckets
-     *
-     * @return mixed
-     */
-    function getAggregations();
 }
