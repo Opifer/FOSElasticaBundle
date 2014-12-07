@@ -4,7 +4,6 @@ namespace FOS\ElasticaBundle\Persister;
 
 use Psr\Log\LoggerInterface;
 use Elastica\Exception\BulkException;
-use Elastica\Exception\NotFoundException;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use Elastica\Type;
 use Elastica\Document;
@@ -71,8 +70,7 @@ class ObjectPersister implements ObjectPersisterInterface
      */
     public function insertOne($object)
     {
-        $document = $this->transformToElasticaDocument($object);
-        $this->type->addDocument($document);
+        $this->insertMany(array($object));
     }
 
     /**
@@ -83,11 +81,7 @@ class ObjectPersister implements ObjectPersisterInterface
      **/
     public function replaceOne($object)
     {
-        $document = $this->transformToElasticaDocument($object);
-        try {
-            $this->type->deleteById($document->getId());
-        } catch (NotFoundException $e) {}
-        $this->type->addDocument($document);
+        $this->replaceMany(array($object));
     }
 
     /**
@@ -98,10 +92,7 @@ class ObjectPersister implements ObjectPersisterInterface
      **/
     public function deleteOne($object)
     {
-        $document = $this->transformToElasticaDocument($object);
-        try {
-            $this->type->deleteById($document->getId());
-        } catch (NotFoundException $e) {}
+        $this->deleteMany(array($object));
     }
 
     /**
@@ -113,9 +104,7 @@ class ObjectPersister implements ObjectPersisterInterface
      **/
     public function deleteById($id)
     {
-        try {
-            $this->type->deleteById($id);
-        } catch (NotFoundException $e) {}
+        $this->deleteManyByIdentifiers(array($id));
     }
 
     /**

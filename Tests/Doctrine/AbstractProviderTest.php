@@ -54,6 +54,11 @@ class AbstractProviderTest extends \PHPUnit_Framework_TestCase
             ->with($queryBuilder)
             ->will($this->returnValue($nbObjects));
 
+        $this->indexable->expects($this->any())
+            ->method('isObjectIndexable')
+            ->with('index', 'type', $this->anything())
+            ->will($this->returnValue(true));
+
         $providerInvocationOffset = 2;
 
         foreach ($objectsByIteration as $i => $objects) {
@@ -106,7 +111,38 @@ class AbstractProviderTest extends \PHPUnit_Framework_TestCase
             ->method('fetchSlice')
             ->will($this->returnValue($objects));
 
+        $this->indexable->expects($this->any())
+            ->method('isObjectIndexable')
+            ->with('index', 'type', $this->anything())
+            ->will($this->returnValue(true));
+
         $this->objectManager->expects($this->never())
+            ->method('clear');
+
+        $provider->populate();
+    }
+
+    public function testPopulateShouldClearObjectManagerForFilteredBatch()
+    {
+        $nbObjects = 1;
+        $objects = array(1);
+
+        $provider = $this->getMockAbstractProvider();
+
+        $provider->expects($this->any())
+            ->method('countObjects')
+            ->will($this->returnValue($nbObjects));
+
+        $provider->expects($this->any())
+            ->method('fetchSlice')
+            ->will($this->returnValue($objects));
+
+        $this->indexable->expects($this->any())
+            ->method('isObjectIndexable')
+            ->with('index', 'type', $this->anything())
+            ->will($this->returnValue(false));
+
+        $this->objectManager->expects($this->once())
             ->method('clear');
 
         $provider->populate();
@@ -126,6 +162,11 @@ class AbstractProviderTest extends \PHPUnit_Framework_TestCase
         $provider->expects($this->any())
             ->method('fetchSlice')
             ->will($this->returnValue($objects));
+
+        $this->indexable->expects($this->any())
+            ->method('isObjectIndexable')
+            ->with('index', 'type', $this->anything())
+            ->will($this->returnValue(true));
 
         $loggerClosureInvoked = false;
         $loggerClosure = function () use (&$loggerClosureInvoked) {
@@ -153,6 +194,11 @@ class AbstractProviderTest extends \PHPUnit_Framework_TestCase
         $provider->expects($this->any())
             ->method('fetchSlice')
             ->will($this->returnValue($objects));
+
+        $this->indexable->expects($this->any())
+            ->method('isObjectIndexable')
+            ->with('index', 'type', $this->anything())
+            ->will($this->returnValue(true));
 
         $this->objectPersister->expects($this->any())
             ->method('insertMany')

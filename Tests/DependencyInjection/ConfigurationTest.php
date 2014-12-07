@@ -22,7 +22,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 
     private function getConfigs(array $configArray)
     {
-        $configuration = new Configuration(array($configArray), true);
+        $configuration = new Configuration(true);
 
         return $this->processor->processConfiguration($configuration, array($configArray));
     }
@@ -46,7 +46,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                     'url' => 'http://localhost:9200',
                 ),
                 'clustered' => array(
-                    'servers' => array(
+                    'connections' => array(
                         array(
                             'url' => 'http://es1:9200',
                             'headers' => array(
@@ -65,13 +65,13 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         ));
 
         $this->assertCount(2, $configuration['clients']);
-        $this->assertCount(1, $configuration['clients']['default']['servers']);
-        $this->assertCount(0, $configuration['clients']['default']['servers'][0]['headers']);
+        $this->assertCount(1, $configuration['clients']['default']['connections']);
+        $this->assertCount(0, $configuration['clients']['default']['connections'][0]['headers']);
 
-        $this->assertCount(2, $configuration['clients']['clustered']['servers']);
-        $this->assertEquals('http://es2:9200/', $configuration['clients']['clustered']['servers'][1]['url']);
-        $this->assertCount(1, $configuration['clients']['clustered']['servers'][1]['headers']);
-        $this->assertEquals('Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==', $configuration['clients']['clustered']['servers'][0]['headers'][0]);
+        $this->assertCount(2, $configuration['clients']['clustered']['connections']);
+        $this->assertEquals('http://es2:9200/', $configuration['clients']['clustered']['connections'][1]['url']);
+        $this->assertCount(1, $configuration['clients']['clustered']['connections'][1]['headers']);
+        $this->assertEquals('Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==', $configuration['clients']['clustered']['connections'][0]['headers'][0]);
     }
 
     public function testLogging()
@@ -98,10 +98,10 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertCount(4, $configuration['clients']);
 
-        $this->assertEquals('fos_elastica.logger', $configuration['clients']['logging_enabled']['servers'][0]['logger']);
-        $this->assertFalse($configuration['clients']['logging_disabled']['servers'][0]['logger']);
-        $this->assertEquals('fos_elastica.logger', $configuration['clients']['logging_not_mentioned']['servers'][0]['logger']);
-        $this->assertEquals('custom.service', $configuration['clients']['logging_custom']['servers'][0]['logger']);
+        $this->assertEquals('fos_elastica.logger', $configuration['clients']['logging_enabled']['connections'][0]['logger']);
+        $this->assertFalse($configuration['clients']['logging_disabled']['connections'][0]['logger']);
+        $this->assertEquals('fos_elastica.logger', $configuration['clients']['logging_not_mentioned']['connections'][0]['logger']);
+        $this->assertEquals('custom.service', $configuration['clients']['logging_custom']['connections'][0]['logger']);
     }
 
     public function testSlashIsAddedAtTheEndOfServerUrl()
@@ -113,12 +113,12 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         );
         $configuration = $this->getConfigs($config);
 
-        $this->assertEquals('http://www.github.com/', $configuration['clients']['default']['servers'][0]['url']);
+        $this->assertEquals('http://www.github.com/', $configuration['clients']['default']['connections'][0]['url']);
     }
 
     public function testTypeConfig()
     {
-        $configuration = $this->getConfigs(array(
+        $this->getConfigs(array(
             'clients' => array(
                 'default' => array('url' => 'http://localhost:9200'),
             ),
@@ -159,65 +159,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 )
             )
         ));
-
-        $this->assertEquals('string', $configuration['indexes']['test']['types']['test']['properties']['title']['type']);
-        $this->assertTrue($configuration['indexes']['test']['types']['test']['properties']['title']['include_in_all']);
-    }
-
-    public function testEmptyPropertiesIndexIsUnset()
-    {
-        $config = array(
-            'indexes' => array(
-                'test' => array(
-                    'types' => array(
-                        'test' => array(
-                            'mappings' => array(
-                                'title' => array(
-                                    'type' => 'string',
-                                    'fields' => array(
-                                        'autocomplete' => null
-                                    )
-                                ),
-                                'content' => null,
-                                'children' => array(
-                                    'type' => 'object',
-                                    'properties' => array(
-                                        'title' => array(
-                                            'type' => 'string',
-                                            'fields' => array(
-                                                'autocomplete' => null
-                                            )
-                                        ),
-                                        'content' => null,
-                                        'tags' => array(
-                                            'properties' => array(
-                                                'tag' => array(
-                                                    'type' => 'string',
-                                                    'index' => 'not_analyzed'
-                                                )
-                                            )
-                                        )
-                                    )
-                                ),
-                            )
-                        )
-                    )
-                )
-            )
-        );
-
-        $processor = new Processor();
-
-        $configuration = $processor->processConfiguration(new Configuration(array($config), false), array($config));
-
-        $mapping = $configuration['indexes']['test']['types']['test']['properties'];
-        $this->assertArrayNotHasKey('properties', $mapping['content']);
-        $this->assertArrayNotHasKey('properties', $mapping['title']);
-        $this->assertArrayHasKey('properties', $mapping['children']);
-        $this->assertArrayNotHasKey('properties', $mapping['children']['properties']['title']);
-        $this->assertArrayNotHasKey('properties', $mapping['children']['properties']['content']);
-        $this->assertArrayHasKey('properties', $mapping['children']['properties']['tags']);
-        $this->assertArrayNotHasKey('properties', $mapping['children']['properties']['tags']['properties']['tag']);
     }
 
     public function testClientConfigurationNoUrl()
@@ -231,7 +172,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             )
         ));
 
-        $this->assertTrue(empty($configuration['clients']['default']['servers'][0]['url']));
+        $this->assertTrue(empty($configuration['clients']['default']['connections'][0]['url']));
     }
 
     public function testMappingsRenamedToProperties()
@@ -260,7 +201,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 
     public function testNestedProperties()
     {
-        $configuration = $this->getConfigs(array(
+        $this->getConfigs(array(
             'clients' => array(
                 'default' => array('url' => 'http://localhost:9200'),
             ),
